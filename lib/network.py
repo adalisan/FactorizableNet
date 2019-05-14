@@ -65,7 +65,7 @@ def save_net(fname, net):
     h5f = h5py.File(fname, mode='w')
     for k, v in net.state_dict().items():
         h5f.create_dataset(k, data=v.cpu().numpy())
-        #print '[Saved]: {}'.format(k)
+        #print ('[Saved]: {}'.format(k))
 
 
 def load_net(fname, net):
@@ -76,9 +76,9 @@ def load_net(fname, net):
             if k in h5f:
                 param = torch.from_numpy(np.asarray(h5f[k]))
                 v.copy_(param)
-                #print '[Copied]: {}'.format(k)
+                #print ('[Copied]: {}'.format(k))
             else:
-                print '[Missed]: {}'.format(k)
+                print ('[Missed]: {}'.format(k))
                 print('[Manually copy instructions]: \n'
                          'check the existence of new name:\n'
                          '\t \'{}\' in h5f\n'
@@ -87,7 +87,7 @@ def load_net(fname, net):
                          '\t v.copy_(param)\n'.format(k, k))
                 pdb.set_trace()
         except Exception as e:
-            print '[Loaded net not complete] Parameter[{}] Size Mismatch...'.format(k)
+            print ('[Loaded net not complete] Parameter[{}] Size Mismatch...'.format(k))
             pdb.set_trace()
 
 

@@ -15,11 +15,12 @@ if torch.cuda.is_available():
     headers += ['src/nms_cuda.h']
     defines += [('WITH_CUDA', None)]
     with_cuda = True
-
+print ('with_cuda: ',with_cuda)
 this_file = os.path.dirname(os.path.realpath(__file__))
 print(this_file)
 extra_objects = ['src/nms_cuda_kernel.cu.o']
 extra_objects = [os.path.join(this_file, fname) for fname in extra_objects]
+print("cuda and others")
 print(extra_objects)
 
 ffi = create_extension(

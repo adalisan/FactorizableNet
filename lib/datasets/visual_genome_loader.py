@@ -50,15 +50,15 @@ class visual_genome(data.Dataset):
 
         self._object_classes = tuple(['__background__'] + cats['object'])
         self._predicate_classes = tuple(['__background__'] + cats['predicate'])
-        self._object_class_to_ind = dict(zip(self.object_classes, xrange(self.num_object_classes)))
-        self._predicate_class_to_ind = dict(zip(self.predicate_classes, xrange(self.num_predicate_classes)))
+        self._object_class_to_ind = dict(zip(self.object_classes, range(self.num_object_classes)))
+        self._predicate_class_to_ind = dict(zip(self.predicate_classes, range(self.num_predicate_classes)))
         self.inverse_weight_object = torch.ones(self.num_object_classes)
-        for idx in xrange(1, self.num_object_classes):
+        for idx in range(1, self.num_object_classes):
             self.inverse_weight_object[idx] = inverse_weight['object'][self._object_classes[idx]]
         self.inverse_weight_object = self.inverse_weight_object / self.inverse_weight_object.min()
         # print self.inverse_weight_object
         self.inverse_weight_predicate = torch.ones(self.num_predicate_classes)
-        for idx in xrange(1, self.num_predicate_classes):
+        for idx in range(1, self.num_predicate_classes):
             self.inverse_weight_predicate[idx] = inverse_weight['predicate'][self._predicate_classes[idx]]
         self.inverse_weight_predicate = self.inverse_weight_predicate / self.inverse_weight_predicate.min()
         # print self.inverse_weight_predicate

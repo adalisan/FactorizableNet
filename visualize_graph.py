@@ -5,7 +5,10 @@ import numpy as np
 import random
 import numpy.random as npr
 import json
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError as e:
+    import pickle
 import yaml
 import cv2
 
@@ -89,7 +92,7 @@ def visualize():
                              gt_to_pred, gt_relations, test_set._object_classes, 
                              test_set._predicate_classes, filename=image_name)
 
-    print 'Done generating scene graphs.'
+   print( 'Done generating scene graphs.')
 
 
 def draw_graph_pred(im, boxes, obj_ids, pred_relationships, gt_to_pred, 

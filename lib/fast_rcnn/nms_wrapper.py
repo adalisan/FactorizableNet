@@ -13,14 +13,14 @@ import torch
 
 def nms(dets, thresh, retain_all=False):
     """Dispatch to either CPU or GPU NMS implementations."""
-    
+
     if dets.shape[0] == 0:
         return []
     # ---numpy version---
     # original: return gpu_nms(dets, thresh, device_id=cfg.GPU_ID)
     # ---pytorch version---
     if retain_all:
-    	return nms_retain_all(dets, thresh)
+        return nms_retain_all(dets, thresh)
     else:
         dets = torch.Tensor(dets).cuda()
-    	return nms_gpu(dets[:, :4], dets[:, 4], thresh).cpu().numpy()
+        return nms_gpu(dets[:, :4], dets[:, 4], thresh).cpu().numpy()

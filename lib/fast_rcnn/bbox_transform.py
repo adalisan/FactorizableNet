@@ -7,7 +7,9 @@
 
 import numpy as np
 from sympy.physics.paulialgebra import delta
-from config import cfg
+import  lib.fast_rcnn.config  as  cfg_f
+cfg=cfg_f.__C
+#from  config2  import config as  alt_cfg
 
 np.seterr(all='warn')
 
@@ -81,7 +83,8 @@ def bbox_transform_inv_hdn(boxes, deltas):
     heights = boxes[:, 3] - boxes[:, 1] + 1.0
     ctr_x = boxes[:, 0] + 0.5 * widths
     ctr_y = boxes[:, 1] + 0.5 * heights
-
+    print("config dict")
+    print (cfg)
     if cfg.TRAIN.BBOX_NORMALIZE_TARGETS_PRECOMPUTED:
         deltas = deltas * np.array(cfg.TRAIN.BBOX_NORMALIZE_STDS) + np.array(cfg.TRAIN.BBOX_NORMALIZE_MEANS)
 

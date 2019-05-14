@@ -10,18 +10,19 @@ import yaml
 import click
 from pprint import pprint
 # To restore the testing results for further analysis
-import cPickle
+import pickle
 
 
 import torch
 
-from lib import network
+import lib.network as network
+from lib.utils import timer
 from lib.utils.timer import Timer
-import lib.datasets as datasets
+from lib import datasets as datasets
 from lib.utils.FN_utils import get_model_name, group_features, get_optimizer
-import lib.utils.general_utils as utils
-import lib.utils.logger as logger
-import models
+from lib.utils import general_utils as utils
+from lib.utils import logger as logger
+import  models
 from models.HDN_v2.utils import save_checkpoint, load_checkpoint, save_results, save_detections
 
 from models.modules.dataParallel import DataParallel
@@ -48,7 +49,7 @@ parser.add_argument('--epochs', type=int, metavar='N', help='max iterations for 
 parser.add_argument('--eval_epochs', type=int, default= 1, help='Number of epochs to evaluate the model')
 parser.add_argument('--print_freq', type=int, default=1000, help='Interval for Logging')
 parser.add_argument('--step_size', type=int, help='Step size for decay learning rate')
-parser.add_argument('--optimizer', type=int, choices=range(0, 3), help='Step size for decay learning rate')
+parser.add_argument('--optimizer', type=int, choices=list(range(0, 3)), help='Step size for decay learning rate')
 parser.add_argument('-i', '--infinite', action='store_true', help='To enable infinite training')
 parser.add_argument('--iter_size', type=int, default=1, help='Iteration size to update parameters')
 parser.add_argument('--loss_weight', default=True)
@@ -113,7 +114,8 @@ def main():
         },
         'data':{
             'dataset_option': args.dataset_option,
-            'batch_size': torch.cuda.device_count(),
+            #'batch_size': torch.cuda.device_count(),
+            'batch_size': 1,
         },
         'optim': {
             'lr': args.learning_rate,
@@ -138,21 +140,21 @@ def main():
             options['data']['dataset_version'] = data_opts.get('dataset_version', None)
             options['opts'] = data_opts
 
-    print '## args'
+    print('## args')
     pprint(vars(args))
-    print '## options'
+    print('## options')
     pprint(options)
 
     lr = options['optim']['lr']
     options = get_model_name(options)
-    print 'Checkpoints are saved to: {}'.format(options['logs']['dir_logs'])
+    print('Checkpoints are saved to: {}'.format(options['logs']['dir_logs']))
 
     # To set the random seed
     random.seed(args.seed)
     torch.manual_seed(args.seed + 1)
     torch.cuda.manual_seed(args.seed + 2)
 
-    print("Loading training set and testing set..."),
+    print(("Loading training set and testing set..."), end=' ')
     train_set = getattr(datasets, options['data']['dataset'])(data_opts, 'train',
                                 dataset_option=options['data'].get('dataset_option', None),
                                 use_region=options['data'].get('use_region', False),)
@@ -168,6 +170,10 @@ def main():
     train_set._feat_stride = model.rpn._feat_stride
     train_set._rpn_opts = model.rpn.opts
     print("Done.")
+    print("Read options")
+    print(options_yaml)
+    print("Def options")
+    print(options)
 
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=options['data']['batch_size'],
                                                 shuffle=True, num_workers=args.workers,
@@ -194,13 +200,13 @@ def main():
     if args.optimize_MPS:
         print('Optimize the MPS part ONLY.')
         assert args.pretrained_model, 'Please specify the [pretrained_model]'
-        print('Loading pretrained model: {}'.format(args.pretrained_model))
+        print(('Loading pretrained model: {}'.format(args.pretrained_model)))
         network.load_net(args.pretrained_model, model)
         args.train_all = False
         optimizer = get_optimizer(lr, 3, options, vgg_features_var, rpn_features, hdn_features, mps_features)
     # 2. resume training
     elif args.resume is not None:
-        print('Loading saved model: {}'.format(os.path.join(options['logs']['dir_logs'], args.resume)))
+        print(('Loading saved model: {}'.format(os.path.join(options['logs']['dir_logs'], args.resume))))
         args.train_all = True
         optimizer = get_optimizer(lr, 2, options, vgg_features_var, rpn_features, hdn_features, mps_features)
         args.start_epoch, best_recall[0], exp_logger = load_checkpoint(model, optimizer,
@@ -223,13 +229,13 @@ def main():
 
         # 3. If we have some initialization points
         if args.pretrained_model is not None:
-            print('Loading pretrained model: {}'.format(args.pretrained_model))
+            print(('Loading pretrained model: {}'.format(args.pretrained_model)))
             args.train_all = True
             network.load_net(args.pretrained_model, model)
             optimizer = get_optimizer(lr, 2, options, vgg_features_var, rpn_features, hdn_features, mps_features)
         # 4. training with pretrained RPN
         elif args.rpn is not None:
-            print('Loading pretrained RPN: {}'.format(args.rpn))
+            print(('Loading pretrained RPN: {}'.format(args.rpn)))
             args.train_all = False
             network.load_net(args.rpn, model.rpn)
             optimizer = get_optimizer(lr, 2, options, vgg_features_var, rpn_features, hdn_features, mps_features)
@@ -237,7 +243,7 @@ def main():
             #     args.warm_iters = options['optim']['lr_decay_epoch'] // 2
         # 5. train in an end-to-end manner: no RPN given
         else:
-            print('\n*** End-to-end Training ***\n'.format(args.rpn))
+            print(('\n*** End-to-end Training ***\n'.format(args.rpn)))
             args.train_all = True
             optimizer = get_optimizer(lr, 0, options, vgg_features_var, rpn_features, hdn_features, mps_features)
             if args.warm_iters < 0:
@@ -261,7 +267,7 @@ def main():
         exp_logger.add_meters('train', make_meters())
         exp_logger.add_meters('test', make_meters())
         exp_logger.info['model_params'] = utils.params_count(model)
-        print('Model has {} parameters'.format(exp_logger.info['model_params']))
+        print(('Model has {} parameters'.format(exp_logger.info['model_params'])))
 
         # logger_path = "log/logger/{}".format(args.model_name)
         # if os.path.exists(logger_path):
@@ -279,13 +285,13 @@ def main():
                                             use_gt_boxes=args.use_gt_boxes)
         print('======= Testing Result =======')
         for idx, top_N in enumerate(top_Ns):
-            print('Top-%d Recall'
+            print(('Top-%d Recall'
                   '\t[Pred]: %2.3f%%'
                   '\t[Phr]: %2.3f%%'
                   '\t[Rel]: %2.3f%%' % (
                     top_N, float(recall[2][idx]) * 100,
                     float(recall[1][idx]) * 100,
-                    float(recall[0][idx]) * 100))
+                    float(recall[0][idx]) * 100)))
         print('============ Done ============')
         save_results(result, None, options['logs']['dir_logs'], is_testing=True)
         return
@@ -298,7 +304,7 @@ def main():
         python_eval(path_dets, osp.join(data_opts['dir'], 'object_xml'))
         return
 
-    print '========== [Start Training] ==========\n'
+    print('========== [Start Training] ==========\n')
 
     FLAG_infinite = False
     loop_counter = 0
@@ -319,20 +325,20 @@ def main():
                     gamma=options['optim']['lr_decay'])
             options['optim']['epochs'] = args.start_epoch  + options['optim']['lr_decay_epoch'] * 5
             args.iter_size *= 2
-            print('========= [{}] loop ========='.format(loop_counter) )
-            print('[epoch {}] to [epoch {}]'.format(args.start_epoch, options['optim']['epochs'] ))
-            print('[iter_size]: {}'.format(args.iter_size))
+            print(('========= [{}] loop ========='.format(loop_counter) ))
+            print(('[epoch {}] to [epoch {}]'.format(args.start_epoch, options['optim']['epochs'] )))
+            print(('[iter_size]: {}'.format(args.iter_size)))
 
         FLAG_infinite = True
         for epoch in range(args.start_epoch, options['optim']['epochs']):
             # Training
             scheduler.step()
-            print('[Learning Rate]\t{}'.format(optimizer.param_groups[0]['lr']))
+            print(('[Learning Rate]\t{}'.format(optimizer.param_groups[0]['lr'])))
             is_best=False
             model.module.engines.train(train_loader, model, optimizer, exp_logger, epoch, args.train_all, args.print_freq,
                 clip_gradient=options['optim']['clip_gradient'], iter_size=args.iter_size)
             if (epoch + 1) % args.eval_epochs == 0:
-                print('\n============ Epoch {} ============'.format(epoch))
+                print(('\n============ Epoch {} ============'.format(epoch)))
                 recall, result = model.module.engines.test(test_loader, model, top_Ns,
                                                                     nms=args.nms,
                                                                     triplet_nms=args.triplet_nms)
@@ -343,13 +349,13 @@ def main():
                 best_recall_pred = recall[2] if is_best else best_recall_pred
                 print('\n[Result]')
                 for idx, top_N in enumerate(top_Ns):
-                    print('\tTop-%d Recall'
+                    print(('\tTop-%d Recall'
                           '\t[Pred]: %2.3f%% (best: %2.3f%%)'
                           '\t[Phr]: %2.3f%% (best: %2.3f%%)'
                           '\t[Rel]: %2.3f%% (best: %2.3f%%)' % (
                             top_N, float(recall[2][idx]) * 100, float(best_recall_pred[idx]) * 100,
                             float(recall[1][idx]) * 100, float(best_recall_phrase[idx]) * 100,
-                            float(recall[0][idx]) * 100, float(best_recall[idx]) * 100 ))
+                            float(recall[0][idx]) * 100, float(best_recall[idx]) * 100 )))
 
                 save_checkpoint({
                         'epoch': epoch,

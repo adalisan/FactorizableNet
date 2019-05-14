@@ -131,7 +131,7 @@ def visualize():
             for s in low_recall_cases:
                 f.write(s+'\n')
 
-    print 'Done generating scene graphs.'
+   print( 'Done generating scene graphs.')
 
 
 def draw_graph_pred(im, boxes, obj_ids, pred_relationships,

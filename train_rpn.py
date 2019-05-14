@@ -3,17 +3,17 @@ import torch
 import numpy as np
 import time
 import yaml
-import cPickle as pickle
+import pickle as pickle
 
-from lib import network
-from models.RPN import RPN # Hierarchical_Descriptive_Model
-from lib.utils.timer import Timer
-from lib.utils.metrics import check_recall
-from lib.network import np_to_variable
+from .lib import network
+from .models.RPN import RPN # Hierarchical_Descriptive_Model
+from .lib.utils.timer import Timer
+from .lib.utils.metrics import check_recall
+from .lib.network import np_to_variable
 
-from lib.datasets.visual_genome_loader import visual_genome
+from .lib.datasets.visual_genome_loader import visual_genome
 import argparse
-from models.RPN import utils as RPN_utils
+from .models.RPN import utils as RPN_utils
 
 import pdb
 
@@ -42,13 +42,13 @@ args = parser.parse_args()
 
 def main():
     global args
-    print "Loading training set and testing set..."
+    print("Loading training set and testing set...")
     with open(args.path_data_opts, 'r') as f:
         data_opts = yaml.load(f)
     args.model_name += '_' + data_opts['dataset_version'] + '_' + args.dataset_option
     train_set = visual_genome(data_opts, 'train', dataset_option=args.dataset_option, batch_size=args.batch_size)
     test_set = visual_genome(data_opts, 'test', dataset_option=args.dataset_option, batch_size=args.batch_size)
-    print "Done."
+    print("Done.")
     with open(args.path_rpn_opts, 'r') as f:
         opts = yaml.load(f)
         opts['scale'] = train_set.opts['test']['SCALES'][0]
@@ -67,13 +67,13 @@ def main():
                                                 pin_memory=True, collate_fn=visual_genome.collate)
 
     if args.resume is not None:
-        print('Resume training from: {}'.format(args.resume))
+        print(('Resume training from: {}'.format(args.resume)))
         RPN_utils.load_checkpoint(args.resume, net)
         optimizer = torch.optim.SGD([
                 {'params': list(net.parameters())[26:]},
                 ], lr=args.lr, momentum=args.momentum, weight_decay=0.0005)
     else:
-        print 'Training from scratch.'
+        print('Training from scratch.')
         optimizer = torch.optim.SGD(list(net.parameters())[26:], lr=args.lr, momentum=args.momentum, weight_decay=0.0005)
 
     network.set_trainable(net.features, requires_grad=False)
@@ -103,10 +103,10 @@ def main():
         # Testing
         net.eval()
         recall, _ = test(test_loader, net)
-        print('Epoch[{epoch:d}]: '
+        print(('Epoch[{epoch:d}]: '
               'Recall: '
               'object: {recall: .3f}%% (Best: {best_recall: .3f}%%)'.format(
-                epoch = epoch, recall=recall * 100, best_recall=best_recall * 100))
+                epoch = epoch, recall=recall * 100, best_recall=best_recall * 100)))
         # update learning rate
         if epoch % args.step_size == 0 and epoch > 0:
             args.disable_clip_gradient = True
@@ -172,7 +172,7 @@ def train(train_loader, target_net, optimizer, epoch):
         end = time.time()
 
         if  (i + 1) % args.log_interval == 0:
-            print('Epoch: [{0}][{1}/{2}]\t'
+            print(('Epoch: [{0}][{1}/{2}]\t'
                   'Batch_Time: {batch_time.avg:.3f}s\t'
                   'lr: {lr: f}\t'
                   'Loss: {loss.avg:.4f}\n'
@@ -185,12 +185,12 @@ def train(train_loader, target_net, optimizer, epoch):
                    epoch, i + 1, len(train_loader), batch_time=batch_time,lr=args.lr,
                    data_time=data_time, loss=train_loss,
                    cls_loss_object=train_loss_obj_entropy, reg_loss_object=train_loss_obj_box,
-                   accuracy_obj=accuracy_obj))
+                   accuracy_obj=accuracy_obj)))
 
 def test(test_loader, target_net):
     box_num = 0
     correct_cnt, total_cnt = 0., 0.
-    print '========== Testing ======='
+    print('========== Testing =======')
 
     results = []
 
@@ -213,22 +213,22 @@ def test(test_loader, target_net):
         batch_time.update(time.time() - end)
         end = time.time()
         if (i + 1) % 100 == 0 and i > 0:
-            print('[{0}/{6}]  Time: {1:2.3f}s/img).'
+            print(('[{0}/{6}]  Time: {1:2.3f}s/img).'
                   '\t[object] Avg: {2:2.2f} Boxes/im, Top-50 recall: {3:2.3f} ({4:.0f}/{5:.0f})'.format(
                     i + 1, batch_time.avg,
                     box_num / float(im_counter), correct_cnt / float(total_cnt)* 100, correct_cnt, total_cnt,
-                    len(test_loader)))
+                    len(test_loader))))
 
     recall = correct_cnt / float(total_cnt)
-    print '====== Done Testing ===='
+    print('====== Done Testing ====')
     return recall, results
 
 def evaluate(loader, net, path, dataset='train'):
 
     recall, rois = test(loader, net)
-    print('[{}]\tRecall: '
-                'object: {recall: .3f}%%'.format(dataset, recall=recall * 100))
-    print('Saving ROIs...'),
+    print(('[{}]\tRecall: '
+                'object: {recall: .3f}%%'.format(dataset, recall=recall * 100)))
+    print(('Saving ROIs...'), end=' ')
     with open(path + '_object_' + dataset + '.pkl', 'wb') as f:
         pickle.dump(rois, f)
     print('Done.')
