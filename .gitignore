@@ -107,3 +107,4 @@ eval/*.json
 *.DS_Store
 images/
 lib.bak/
+lib/build.bak

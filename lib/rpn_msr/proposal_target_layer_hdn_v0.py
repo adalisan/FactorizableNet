@@ -50,15 +50,15 @@ def proposal_target_layer(object_rois, gt_objects, gt_relationships, n_classes_o
         count = 1
         fg_num = (object_labels > 0).sum()
         bg_num = (object_labels == 0).sum()
-        print 'object num fg avg: {}'.format(fg_num / count)
-        print 'object num bg avg: {}'.format(bg_num / count)
-        print 'ratio: {:.3f}'.format(float(fg_num) / float(bg_num))
+        print( 'object num fg avg: {}'.format(fg_num / count))
+        print( 'object num bg avg: {}'.format(bg_num / count))
+        print( 'ratio: {:.3f}'.format(float(fg_num) / float(bg_num)))
         count_rel = 1
         fg_num_rel = (phrase_labels > 0).sum()
         bg_num_rel = (phrase_labels == 0).sum()
-        print 'relationship num fg avg: {}'.format(fg_num_rel / count_rel)
-        print 'relationship num bg avg: {}'.format(bg_num_rel / count_rel)
-        print 'ratio: {:.3f}'.format(float(fg_num_rel) / float(bg_num_rel))
+        print( 'relationship num fg avg: {}'.format(fg_num_rel / count_rel))
+        print( 'relationship num bg avg: {}'.format(bg_num_rel / count_rel))
+        print( 'ratio: {:.3f}'.format(float(fg_num_rel) / float(bg_num_rel)))
 
     
     assert object_rois.shape[1] == 5
@@ -161,15 +161,15 @@ def _sample_rois(object_rois, gt_objects, gt_relationships, num_images, num_clas
     rel_bg_num = rel_per_image
     if fg_inds.size > 0:
         assert fg_inds.size == fg_inds.shape[0]
-        id_i, id_j = np.meshgrid(xrange(fg_inds.size), xrange(fg_inds.size), indexing='ij') # Grouping the input object rois
+        id_i, id_j = np.meshgrid(range(fg_inds.size), range(fg_inds.size), indexing='ij') # Grouping the input object rois
         id_i = id_i.reshape(-1) 
         id_j = id_j.reshape(-1)
         pair_labels = gt_relationships[gt_assignment[fg_inds[id_i]], gt_assignment[fg_inds[id_j]]]
         fg_id_rel = np.where(pair_labels > 0)[0]
         rel_fg_num = fg_id_rel.size
         rel_fg_num = int(min(np.round(rel_per_image * cfg.TRAIN.FG_FRACTION_RELATIONSHIP), rel_fg_num))
-        # print 'rel_fg_num'
-        # print rel_fg_num
+        # print( 'rel_fg_num')
+        # print( rel_fg_num)
         if rel_fg_num > 0:
             fg_id_rel = npr.choice(fg_id_rel, size=rel_fg_num, replace=False)
         else:
@@ -182,8 +182,8 @@ def _sample_rois(object_rois, gt_objects, gt_relationships, num_images, num_clas
         rel_bg_num = rel_per_image - rel_fg_num
 
     phrase_labels = np.zeros(rel_bg_num, dtype=np.float)
-    sub_assignment = npr.choice(xrange(keep_inds.size), size=rel_bg_num, replace=True)
-    obj_assignment = npr.choice(xrange(keep_inds.size), size=rel_bg_num, replace=True)
+    sub_assignment = npr.choice(range(keep_inds.size), size=rel_bg_num, replace=True)
+    obj_assignment = npr.choice(range(keep_inds.size), size=rel_bg_num, replace=True)
     sub_list = keep_inds[sub_assignment]
     obj_list = keep_inds[obj_assignment]
 
@@ -215,8 +215,8 @@ def _setup_connection(object_rois,):
 
     id_i, id_j = _generate_pairs(keep_inds) # Grouping the input object rois and remove the diagonal items
     phrase_rois = box_union(object_rois[id_i, :], object_rois[id_j, :])
-    # print 'before union', object_rois[id_i[0], :], object_rois[id_j[0], :]
-    # print 'after union', phrase_rois[0, :]
+    # print( 'before union', object_rois[id_i[0], :], object_rois[id_j[0], :])
+    # print( 'after union', phrase_rois[0, :])
 ### prepare connection matrix
     mat_object, mat_phrase = _prepare_mat(id_i, id_j, rois.shape[0])
 
@@ -241,7 +241,7 @@ def _prepare_mat(sub_list, obj_list, object_batchsize):
     mat_phrase[:, 0] = sub_list
     mat_phrase[:, 1] = obj_list
 
-    for i in xrange(phrase_batchsize):
+    for i in range(phrase_batchsize):
         mat_object[sub_list[i], 0, i] = 1
         mat_object[obj_list[i], 1, i] = 1
 

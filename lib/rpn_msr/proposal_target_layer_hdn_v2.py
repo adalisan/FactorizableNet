@@ -96,35 +96,35 @@ def proposal_target_layer(object_rois, region_rois, gt_objects, gt_relationships
                     _setup_connection(object_rois, region_rois, graph_generation=graph_generation)
         object_labels, bbox_targets, bbox_inside_weights, bbox_outside_weights, phrase_labels, region_labels, \
              bbox_targets_region, bbox_inside_weights_region, bbox_outside_weights_region= [None] * 9
-    # print 'region_roi', region_roi
-    # print 'object_rois'
-    # print object_rois
-    # print 'phrase_rois'
-    # print phrase_rois
+    # print( 'region_roi', region_roi)
+    # print( 'object_rois')
+    # print( object_rois)
+    # print( 'phrase_rois')
+    # print( phrase_rois)
 
     if DEBUG:
-        # print 'region_roi'
-        # print region_roi
-        # print 'object num fg: {}'.format((object_labels > 0).sum())
-        # print 'object num bg: {}'.format((object_labels == 0).sum())
-        # print 'relationship num fg: {}'.format((phrase_labels > 0).sum())
-        # print 'relationship num bg: {}'.format((phrase_labels == 0).sum())
+        # print( 'region_roi')
+        # print( region_roi)
+        # print( 'object num fg: {}'.format((object_labels > 0).sum()))
+        # print( 'object num bg: {}'.format((object_labels == 0).sum()))
+        # print( 'relationship num fg: {}'.format((phrase_labels > 0).sum()))
+        # print( 'relationship num bg: {}'.format((phrase_labels == 0).sum()))
         count = 1
         fg_num = (object_labels > 0).sum()
         bg_num = (object_labels == 0).sum()
-        print 'object num fg avg: {}'.format(fg_num / count)
-        print 'object num bg avg: {}'.format(bg_num / count)
-        print 'ratio: {:.3f}'.format(float(fg_num) / float(bg_num))
+        print( 'object num fg avg: {}'.format(fg_num / count))
+        print( 'object num bg avg: {}'.format(bg_num / count))
+        print( 'ratio: {:.3f}'.format(float(fg_num) / float(bg_num)))
         count_rel = 1
         fg_num_rel = (phrase_labels > 0).sum()
         bg_num_rel = (phrase_labels == 0).sum()
-        print 'relationship num fg avg: {}'.format(fg_num_rel / count_rel)
-        print 'relationship num bg avg: {}'.format(bg_num_rel / count_rel)
-        print 'ratio: {:.3f}'.format(float(fg_num_rel) / float(bg_num_rel))
-        # print mat_object.shape
-        # print mat_phrase.shape
-        # print 'region_roi'
-        # print region_roi
+        print( 'relationship num fg avg: {}'.format(fg_num_rel / count_rel))
+        print( 'relationship num bg avg: {}'.format(bg_num_rel / count_rel))
+        print( 'ratio: {:.3f}'.format(float(fg_num_rel) / float(bg_num_rel)))
+        # print( mat_object.shape)
+        # print( mat_phrase.shape)
+        # print( 'region_roi')
+        # print( region_roi)
 
     # mps_object [object_batchsize, 2, n_phrase] : the 2 channel means inward(object) and outward(subject) list
     # mps_phrase [phrase_batchsize, 2 + n_region]
@@ -240,15 +240,15 @@ def _sample_rois(object_rois, region_rois, gt_objects, gt_relationships, gt_regi
     rel_bg_num = rel_per_image
     if fg_inds.size > 0:
         assert fg_inds.size == fg_inds.shape[0]
-        id_i, id_j = np.meshgrid(xrange(fg_inds.size), xrange(fg_inds.size), indexing='ij') # Grouping the input object rois
+        id_i, id_j = np.meshgrid(range(fg_inds.size), range(fg_inds.size), indexing='ij') # Grouping the input object rois
         id_i = id_i.reshape(-1) 
         id_j = id_j.reshape(-1)
         pair_labels = gt_relationships[gt_assignment[fg_inds[id_i]], gt_assignment[fg_inds[id_j]]]
         fg_id_rel = np.where(pair_labels > 0)[0]
         rel_fg_num = fg_id_rel.size
         rel_fg_num = int(min(np.round(rel_per_image * cfg.TRAIN.FG_FRACTION_RELATIONSHIP), rel_fg_num))
-        # print 'rel_fg_num'
-        # print rel_fg_num
+        # print( 'rel_fg_num')
+        # print( rel_fg_num)
         if rel_fg_num > 0:
             fg_id_rel = npr.choice(fg_id_rel, size=rel_fg_num, replace=False)
         else:
@@ -261,8 +261,8 @@ def _sample_rois(object_rois, region_rois, gt_objects, gt_relationships, gt_regi
         rel_bg_num = rel_per_image - rel_fg_num
 
     phrase_labels = np.zeros(rel_bg_num, dtype=np.float)
-    sub_assignment = npr.choice(xrange(keep_inds.size), size=rel_bg_num, replace=True)
-    obj_assignment = npr.choice(xrange(keep_inds.size), size=rel_bg_num, replace=True)
+    sub_assignment = npr.choice(range(keep_inds.size), size=rel_bg_num, replace=True)
+    obj_assignment = npr.choice(range(keep_inds.size), size=rel_bg_num, replace=True)
     sub_list = keep_inds[sub_assignment]
     obj_list = keep_inds[obj_assignment]
 
@@ -305,8 +305,8 @@ def _setup_connection(object_rois, region_rois, graph_generation=False):
 
     id_i, id_j = _generate_pairs(keep_inds) # Grouping the input object rois and remove the diagonal items
     phrase_rois = box_union(object_rois[id_i, :], object_rois[id_j, :])
-    # print 'before union', object_rois[id_i[0], :], object_rois[id_j[0], :]
-    # print 'after union', phrase_rois[0, :]
+    # print( 'before union', object_rois[id_i[0], :], object_rois[id_j[0], :])
+    # print( 'after union', phrase_rois[0, :])
 ### prepare connection matrix
     mat_object, mat_phrase = _prepare_mat(id_i, id_j, rois.shape[0])
 
@@ -364,8 +364,8 @@ def _sample_regions(region_rois, phrase_rois, gt_regions, num_images, voc_eos):
 
     # Select background RoIs as those within [BG_THRESH_LO, BG_THRESH_HI)
 
-    # print 'bg original:', np.sum((max_overlaps_gt < cfg.TRAIN.BG_THRESH_HI_REGION) & (max_overlaps_gt >= cfg.TRAIN.BG_THRESH_LO_REGION))
-    # print 'connections:', np.sum((max_overlaps_phrase >= cfg.PHRASE_REGION_OVERLAP_THRESH))
+    # print( 'bg original:', np.sum((max_overlaps_gt < cfg.TRAIN.BG_THRESH_HI_REGION) & (max_overlaps_gt >= cfg.TRAIN.BG_THRESH_LO_REGION)))
+    # print( 'connections:', np.sum((max_overlaps_phrase >= cfg.PHRASE_REGION_OVERLAP_THRESH)))
 
     # bg_inds = np.where(np.logical_and(
     #     (max_overlaps_gt < cfg.TRAIN.BG_THRESH_HI_REGION) & (max_overlaps_gt >= cfg.TRAIN.BG_THRESH_LO_REGION),
@@ -373,7 +373,7 @@ def _sample_regions(region_rois, phrase_rois, gt_regions, num_images, voc_eos):
     bg_inds = np.where(
         (max_overlaps_gt < cfg.TRAIN.BG_THRESH_HI_REGION) & (max_overlaps_gt >= cfg.TRAIN.BG_THRESH_LO_REGION))[0]
 
-    # print 'bg_candidate:', len(bg_inds)
+    # print( 'bg_candidate:', len(bg_inds))
     # Guard against the case when an image has fewer than fg_rois_per_image
     # foreground RoIs
     fg_rois_per_this_image = int(min(fg_rois_per_image, fg_inds.size))
@@ -388,7 +388,7 @@ def _sample_regions(region_rois, phrase_rois, gt_regions, num_images, voc_eos):
 
     if bg_inds.size == 0:
         keep_inds = fg_inds
-        print 'No background in this instance'
+        print( 'No background in this instance')
     else:
         bg_rois_per_this_image = rois_per_image - fg_rois_per_this_image
         bg_rois_per_this_image = min(bg_rois_per_this_image, bg_inds.size)
@@ -440,14 +440,14 @@ def _prepare_mat(sub_list, obj_list, object_batchsize):
 
     
     phrase_batchsize = sub_list.size
-    # print 'phrase_batchsize', phrase_batchsize
+    # print( 'phrase_batchsize', phrase_batchsize)
 
     mat_object = np.zeros((object_batchsize, 2, phrase_batchsize), dtype=np.int64)
     mat_phrase = np.zeros((phrase_batchsize, 2), dtype=np.int64)
     mat_phrase[:, 0] = sub_list
     mat_phrase[:, 1] = obj_list
 
-    for i in xrange(phrase_batchsize):
+    for i in range(phrase_batchsize):
         mat_object[sub_list[i], 0, i] = 1
         mat_object[obj_list[i], 1, i] = 1
 

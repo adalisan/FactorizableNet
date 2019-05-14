@@ -41,14 +41,14 @@ class RPN(nn.Module):
         if self.opts['kmeans_anchors']:
             # Loading k-means anchors
             kmeans_anchors_file = osp.join(self.opts['anchor_dir'], 'kmeans_anchors.json')
-            print 'using k-means anchors: {}'.format(kmeans_anchors_file)
+            print( 'using k-means anchors: {}'.format(kmeans_anchors_file))
             anchors = json.load(open(kmeans_anchors_file))
             if 'scale' not in self.opts:
                 print('No RPN scale is given, default [600] is set')
             self.opts['object']['anchor_scales'] = list(np.array(anchors['anchor_scales_kmeans']) / 600.0 * self.opts.get('scale', 600.))
             self.opts['object']['anchor_ratios'] = anchors['anchor_ratios_kmeans']
         else:
-            print 'using normal anchors'
+            print( 'using normal anchors')
             anchor_scales, anchor_ratios = \
                 np.meshgrid(self.anchor_scales_normal, self.anchor_ratios_normal, indexing='ij')
             self.opts['object']['anchor_scales'] = anchor_scales.reshape(-1)
@@ -92,18 +92,18 @@ class RPN(nn.Module):
     def forward(self, im_data, im_info, gt_objects=None, dontcare_areas=None, rpn_data=None):
 
         features = self.features(im_data)
-        # print 'features.std()', features.data.std()
+        # print( 'features.std()', features.data.std())
         rpn_conv1 = self.conv1(features)
-        # print 'rpn_conv1.std()', rpn_conv1.data.std()
+        # print( 'rpn_conv1.std()', rpn_conv1.data.std())
         # object proposal score
         rpn_cls_score = self.score_conv(rpn_conv1)
-        # print 'rpn_cls_score.std()', rpn_cls_score.data.std()
+        # print( 'rpn_cls_score.std()', rpn_cls_score.data.std())
         rpn_cls_score_reshape = reshape_layer(rpn_cls_score, 2)
         rpn_cls_prob = F.softmax(rpn_cls_score_reshape, dim=1)
         rpn_cls_prob_reshape = reshape_layer(rpn_cls_prob, self.anchor_num*2)
         # rpn boxes
         rpn_bbox_pred = self.bbox_conv(rpn_conv1)
-        # print 'rpn_bbox_pred.std()', rpn_bbox_pred.data.std() * 4
+        # print( 'rpn_bbox_pred.std()', rpn_bbox_pred.data.std() * 4)
 
 
         # proposal layer

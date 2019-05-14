@@ -9,7 +9,7 @@ import numpy as np
 from lib.fast_rcnn.nms_wrapper import nms
 
 from lib.fast_rcnn.bbox_transform import bbox_transform_inv, clip_boxes
-from generate_anchors import generate_anchors
+from . import generate_anchors as generate_anchors
 
 import pdb
 
@@ -38,7 +38,7 @@ def proposal_layer(rpn_cls_prob_reshape, rpn_bbox_pred, im_infos,
     # return the top proposals (-> RoIs top, scores top)
     # layer_params = yaml.load(self.param_str_)
     batch_size = rpn_cls_prob_reshape.shape[0]
-    _anchors = generate_anchors(scales=anchor_scales, ratios=anchor_ratios)
+    _anchors = generate_anchors.generate_anchors(scales=anchor_scales, ratios=anchor_ratios)
     _num_anchors = _anchors.shape[0]
     pre_nms_topN = opts['num_box_pre_NMS']
     post_nms_topN = opts['num_box_post_NMS']
@@ -57,10 +57,10 @@ def proposal_layer(rpn_cls_prob_reshape, rpn_bbox_pred, im_infos,
         bbox_deltas = rpn_bbox_pred[i, :, :height, :width]
 
         if DEBUG:
-            print 'im_size: ({}, {})'.format(im_info[0], im_info[1])
-            print 'scale: {}'.format(im_info[2])
+            print( 'im_size: ({}, {})'.format(im_info[0], im_info[1]))
+            print( 'scale: {}'.format(im_info[2]))
         if DEBUG:
-            print 'score map size: {}'.format(scores.shape)
+            print( 'score map size: {}'.format(scores.shape))
 
         # Enumerate all shifts
         shift_x = np.arange(0, width) * _feat_stride

@@ -77,9 +77,9 @@ for d_id,rs in enumerate(relationships_data):
                 im_relationships['relationships'].append(relationship_item)
             relationship_count += 1
         except Exception as inst:
-            print inst
-            print d_id
-            print r_id
+            print( inst)
+            print( d_id)
+            print( r_id)
             # raw_input("Press Enter to continue...")
             print('({}, {}): [{}]-[{}]-[{}]\n'.format(d_id, r_id, r['subject']['name'], r['predicate'], r['object']['name']))
             print('Error: [{}]-[{}]-[{}]\n'.format(r['subject']['name'].encode('ascii', 'replace'), r['predicate'].encode('ascii', 'replace'), r['object']['name'].encode('ascii', 'replace')))

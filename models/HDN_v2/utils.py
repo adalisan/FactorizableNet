@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import os.path as osp
-import cPickle
+import pickle
 import json
 import shutil
 import torch
@@ -122,7 +122,7 @@ def save_results(results, epoch, dir_logs, is_testing = True):
     path_rslt = os.path.join(dir_epoch, 'testing_result.pkl')
     os.system('mkdir -p ' + dir_epoch)
     with open(path_rslt, 'wb') as f:
-        cPickle.dump(results, f, cPickle.HIGHEST_PROTOCOL)
+        pickle.dump(results, f, pickle.HIGHEST_PROTOCOL)
 
 def save_detections(results, epoch, dir_logs, is_testing = True):
     if is_testing:
@@ -269,9 +269,9 @@ def interpret_relationships(cls_prob, bbox_pred, rois, cls_prob_predicate,
 def interpret_objects(cls_prob, bbox_pred, rois, im_info, nms_thres=-1., min_score=0.00001, use_gt_boxes=False, max_per_image=2000):
         box_deltas = bbox_pred.data.cpu().numpy()
         cls_prob = cls_prob.data.cpu().numpy()
-        all_boxes =[[ ] for _ in xrange(cls_prob.shape[1])]
+        all_boxes =[[ ] for _ in range(cls_prob.shape[1])]
 
-        for j in xrange(1, cls_prob.shape[1]): # skip the background
+        for j in range(1, cls_prob.shape[1]): # skip the background
             inds = np.where(cls_prob[:, j] > min_score)[0]
             if len(inds) == 0:
                 continue
@@ -292,11 +292,11 @@ def interpret_objects(cls_prob, bbox_pred, rois, im_info, nms_thres=-1., min_sco
             all_boxes[j] = cls_dets
 
         if max_per_image > 0:
-            image_scores = np.hstack([all_boxes[j][:, -1]  for j in xrange(1, cls_prob.shape[1]) if len(all_boxes[j]) > 0])
+            image_scores = np.hstack([all_boxes[j][:, -1]  for j in range(1, cls_prob.shape[1]) if len(all_boxes[j]) > 0])
             #print('{} detections.'.format(len(image_scores)))
             if len(image_scores) > max_per_image:
                 image_thresh = np.sort(image_scores)[-max_per_image]
-                for j in xrange(1, cls_prob.shape[1]):
+                for j in range(1, cls_prob.shape[1]):
                     if len(all_boxes[j]) == 0:
                         continue
                     keep = np.where(all_boxes[j][:, -1] >= image_thresh)[0]

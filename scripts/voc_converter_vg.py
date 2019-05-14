@@ -109,7 +109,7 @@ def main():
       if (i+1) % 100 == 0:
           print('{} / {} images processed'.format(i+1, len(annotations)))
 
-  print "Process done"
+ print( "Process done")
 
 
 if __name__ == '__main__':

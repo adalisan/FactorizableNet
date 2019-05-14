@@ -114,7 +114,7 @@ def proposal_target_layer(object_rois, region_rois, gt_objects, gt_relationships
     rel_bg_num = rel_per_image
     object_fg_inds = object_keep_inds[object_fg_indicator]
     if object_fg_inds.size > 0:
-        id_i, id_j = np.meshgrid(xrange(object_fg_inds.size), xrange(object_fg_inds.size), indexing='ij') # Grouping the input object rois
+        id_i, id_j = np.meshgrid(range(object_fg_inds.size), range(object_fg_inds.size), indexing='ij') # Grouping the input object rois
         id_i = id_i.reshape(-1) 
         id_j = id_j.reshape(-1)
         pair_labels = gt_relationships[object_gt_assignment[id_i], object_gt_assignment[id_j]]
@@ -135,8 +135,8 @@ def proposal_target_layer(object_rois, region_rois, gt_objects, gt_relationships
         rel_bg_num = rel_per_image - rel_fg_num
 
     phrase_labels = np.zeros(rel_bg_num, dtype=np.float)
-    sub_assignment = npr.choice(xrange(object_keep_inds.size), size=rel_bg_num, replace=True)
-    obj_assignment = npr.choice(xrange(object_keep_inds.size), size=rel_bg_num, replace=True)
+    sub_assignment = npr.choice(range(object_keep_inds.size), size=rel_bg_num, replace=True)
+    obj_assignment = npr.choice(range(object_keep_inds.size), size=rel_bg_num, replace=True)
     
 
     if object_fg_inds.size > 0:

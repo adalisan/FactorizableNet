@@ -74,14 +74,14 @@ def proposal_target_layer(rpn_rois, gt_boxes, dontcare_areas, _num_classes, is_t
         rois_per_image, _num_classes)
 
     if DEBUG:
-        print 'num fg: {}'.format((labels > 0).sum())
-        print 'num bg: {}'.format((labels == 0).sum())
+        print( 'num fg: {}'.format((labels > 0).sum()))
+        print( 'num bg: {}'.format((labels == 0).sum()))
         # _count += 1
         # _fg_num += (labels > 0).sum()
         # _bg_num += (labels == 0).sum()
-        # print 'num fg avg: {}'.format(_fg_num / _count)
-        # print 'num bg avg: {}'.format(_bg_num / _count)
-        # print 'ratio: {:.3f}'.format(float(_fg_num) / float(_bg_num))
+        # print( 'num fg avg: {}'.format(_fg_num / _count))
+        # print( 'num bg avg: {}'.format(_bg_num / _count))
+        # print( 'ratio: {:.3f}'.format(float(_fg_num) / float(_bg_num)))
 
     rois = rois.reshape(-1, 5)
     labels = labels.reshape(-1, 1)
@@ -144,7 +144,7 @@ def _sample_rois(all_rois, gt_boxes, dontcare_areas, fg_rois_per_image, rois_per
     labels = gt_boxes[gt_assignment, 4]
 
     if DEBUG:
-        print 'max_overlaps', overlaps[:-gt_num, :].max(axis=0)
+        print( 'max_overlaps', overlaps[:-gt_num, :].max(axis=0))
 
     # preclude dontcare areas
     ignore_inds = np.empty(shape=(0), dtype=int)
